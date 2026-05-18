@@ -20,6 +20,10 @@ import type { AnthropicRequest, AnthropicResponse } from '../proxy/transform/typ
 import { PROVIDER_PRESETS } from '../config/providerPresets.js'
 import { MODEL_CONTEXT_WINDOWS_ENV_KEY } from '../../utils/model/modelContextWindows.js'
 import {
+  OPENAI_OFFICIAL_PROVIDER,
+  isOpenAIOfficialProviderId,
+} from './openaiOfficialProvider.js'
+import {
   CURRENT_PROVIDER_INDEX_SCHEMA_VERSION,
   ensurePersistentStorageUpgraded,
 } from './persistentStorageMigrations.js'
@@ -75,14 +79,28 @@ function isProviderModels(value: unknown): value is SavedProvider['models'] {
 
 function isSavedProvider(value: unknown): value is SavedProvider {
   if (!isRecord(value)) return false
+  const runtimeKind = value.runtimeKind
   return (
     typeof value.id === 'string' &&
     typeof value.presetId === 'string' &&
     typeof value.name === 'string' &&
     typeof value.apiKey === 'string' &&
     typeof value.baseUrl === 'string' &&
+    (
+      runtimeKind === undefined ||
+      runtimeKind === 'anthropic_compatible' ||
+      runtimeKind === 'openai_oauth'
+    ) &&
     isProviderModels(value.models)
   )
+}
+
+function normalizeSavedProvider(provider: SavedProvider): SavedProvider {
+  return {
+    ...provider,
+    apiFormat: provider.apiFormat ?? 'anthropic',
+    runtimeKind: provider.runtimeKind ?? 'anthropic_compatible',
+  }
 }
 
 function normalizeProvidersIndex(value: unknown): ProvidersIndex | null {
@@ -91,14 +109,19 @@ function normalizeProvidersIndex(value: unknown): ProvidersIndex | null {
   }
 
   const { activeProviderId: _legacyActiveProviderId, ...rest } = value
-  const providers = value.providers.filter(isSavedProvider)
+  const providers = value.providers
+    .filter(isSavedProvider)
+    .map((provider) => normalizeSavedProvider(provider))
   const rawActiveId =
     typeof value.activeId === 'string'
       ? value.activeId
       : typeof _legacyActiveProviderId === 'string'
         ? _legacyActiveProviderId
         : null
-  const activeId = rawActiveId && providers.some((provider) => provider.id === rawActiveId)
+  const activeId = rawActiveId && (
+    providers.some((provider) => provider.id === rawActiveId) ||
+    isOpenAIOfficialProviderId(rawActiveId)
+  )
     ? rawActiveId
     : null
 
@@ -241,6 +264,10 @@ export class ProviderService {
   }
 
   async getProvider(id: string): Promise<SavedProvider> {
+    if (isOpenAIOfficialProviderId(id)) {
+      return OPENAI_OFFICIAL_PROVIDER
+    }
+
     const index = await this.readIndex()
     const provider = index.providers.find((p) => p.id === id)
     if (!provider) throw ApiError.notFound(`Provider not found: ${id}`)
@@ -258,6 +285,7 @@ export class ProviderService {
       ...(input.authStrategy !== undefined && { authStrategy: input.authStrategy }),
       baseUrl: input.baseUrl,
       apiFormat: input.apiFormat ?? 'anthropic',
+      runtimeKind: input.runtimeKind ?? 'anthropic_compatible',
       models: input.models,
       ...(input.autoCompactWindow !== undefined && { autoCompactWindow: input.autoCompactWindow }),
       ...(input.modelContextWindows !== undefined && { modelContextWindows: input.modelContextWindows }),
@@ -282,6 +310,7 @@ export class ProviderService {
       ...(input.authStrategy !== undefined && { authStrategy: input.authStrategy }),
       ...(input.baseUrl !== undefined && { baseUrl: input.baseUrl }),
       ...(input.apiFormat !== undefined && { apiFormat: input.apiFormat }),
+      ...(input.runtimeKind !== undefined && { runtimeKind: input.runtimeKind }),
       ...(input.models !== undefined && { models: input.models }),
       ...(typeof input.autoCompactWindow === 'number' && { autoCompactWindow: input.autoCompactWindow }),
       ...(input.modelContextWindows !== undefined && input.modelContextWindows !== null && { modelContextWindows: input.modelContextWindows }),
@@ -321,7 +350,9 @@ export class ProviderService {
 
   async activateProvider(id: string): Promise<void> {
     const index = await this.readIndex()
-    const provider = index.providers.find((p) => p.id === id)
+    const provider = isOpenAIOfficialProviderId(id)
+      ? OPENAI_OFFICIAL_PROVIDER
+      : index.providers.find((p) => p.id === id)
     if (!provider) throw ApiError.notFound(`Provider not found: ${id}`)
 
     index.activeId = id
@@ -507,7 +538,7 @@ export class ProviderService {
 
     const index = await this.readIndex()
     if (!index.activeId) return null
-    const provider = index.providers.find((p) => p.id === index.activeId)
+    const provider = await this.getProvider(index.activeId).catch(() => null)
     if (!provider) return null
     return {
       baseUrl: provider.baseUrl,

@@ -278,6 +278,43 @@ describe('ProviderService', () => {
       expect(fetched.name).toBe(added.name)
     })
 
+    describe('ChatGPT Official provider metadata', () => {
+      test('normalizes the built-in ChatGPT provider as an active provider id', async () => {
+        await fs.mkdir(path.join(tmpDir, 'cc-haha'), { recursive: true })
+        await fs.writeFile(
+          path.join(tmpDir, 'cc-haha', 'providers.json'),
+          JSON.stringify({ activeId: 'openai-official', providers: [] }),
+          'utf-8',
+        )
+
+        const svc = new ProviderService()
+        const result = await svc.listProviders()
+
+        expect(result.activeId).toBe('openai-official')
+        expect(result.providers).toEqual([])
+      })
+
+      test('returns built-in ChatGPT provider metadata without persisting secrets', async () => {
+        const svc = new ProviderService()
+        const provider = await svc.getProvider('openai-official')
+
+        expect(provider).toMatchObject({
+          id: 'openai-official',
+          presetId: 'openai-official',
+          name: 'ChatGPT Official',
+          apiKey: '',
+          apiFormat: 'openai_responses',
+          runtimeKind: 'openai_oauth',
+          models: {
+            main: 'gpt-5.3-codex',
+            haiku: 'gpt-5.4-mini',
+            sonnet: 'gpt-5.4',
+            opus: 'gpt-5.3-codex',
+          },
+        })
+      })
+    })
+
     test('should throw 404 for non-existent id', async () => {
       const svc = new ProviderService()
 
