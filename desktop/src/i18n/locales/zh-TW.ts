@@ -23,7 +23,6 @@ export const zh: Record<TranslationKey, string> = {
   // ─── Sidebar ──────────────────────────────────────
   'sidebar.newSession': '新建會話',
   'sidebar.scheduled': '定時任務',
-  'sidebar.traces': 'Trace',
   'sidebar.terminal': '終端',
   'sidebar.settings': '設定',
   'sidebar.searchPlaceholder': '搜尋會話...',
@@ -173,6 +172,7 @@ export const zh: Record<TranslationKey, string> = {
   'settings.tab.providers': '服務商',
   'settings.tab.permissions': '許可權',
   'settings.tab.activity': 'Token 用量',
+  'settings.tab.trace': 'Trace',
   'settings.tab.general': '通用',
   'settings.tab.h5Access': 'H5 訪問',
   'settings.tab.terminal': '終端',

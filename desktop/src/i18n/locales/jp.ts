@@ -23,7 +23,6 @@ export const jp: Record<TranslationKey, string> = {
   // ─── Sidebar ──────────────────────────────────────
   'sidebar.newSession': '新しいセッション',
   'sidebar.scheduled': 'スケジュール',
-  'sidebar.traces': 'Trace',
   'sidebar.terminal': 'ターミナル',
   'sidebar.settings': '設定',
   'sidebar.searchPlaceholder': 'セッションを検索...',
@@ -173,6 +172,7 @@ export const jp: Record<TranslationKey, string> = {
   'settings.tab.providers': 'プロバイダー',
   'settings.tab.permissions': '権限',
   'settings.tab.activity': 'トークン使用量',
+  'settings.tab.trace': 'Trace',
   'settings.tab.general': '一般',
   'settings.tab.h5Access': 'H5 アクセス',
   'settings.tab.terminal': 'ターミナル',

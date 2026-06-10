@@ -23,7 +23,6 @@ export const kr: Record<TranslationKey, string> = {
   // ─── Sidebar ──────────────────────────────────────
   'sidebar.newSession': '새 세션',
   'sidebar.scheduled': '예약 작업',
-  'sidebar.traces': 'Trace',
   'sidebar.terminal': '터미널',
   'sidebar.settings': '설정',
   'sidebar.searchPlaceholder': '세션 검색...',
@@ -173,6 +172,7 @@ export const kr: Record<TranslationKey, string> = {
   'settings.tab.providers': '공급자',
   'settings.tab.permissions': '권한',
   'settings.tab.activity': '토큰 사용량',
+  'settings.tab.trace': 'Trace',
   'settings.tab.general': '일반',
   'settings.tab.h5Access': 'H5 액세스',
   'settings.tab.terminal': '터미널',

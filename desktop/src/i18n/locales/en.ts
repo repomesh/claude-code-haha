@@ -21,7 +21,6 @@ export const en = {
   // ─── Sidebar ──────────────────────────────────────
   'sidebar.newSession': 'New session',
   'sidebar.scheduled': 'Scheduled',
-  'sidebar.traces': 'Trace',
   'sidebar.terminal': 'Terminal',
   'sidebar.settings': 'Settings',
   'sidebar.searchPlaceholder': 'Search sessions...',
@@ -171,6 +170,7 @@ export const en = {
   'settings.tab.providers': 'Providers',
   'settings.tab.permissions': 'Permissions',
   'settings.tab.activity': 'Token usage',
+  'settings.tab.trace': 'Trace',
   'settings.tab.general': 'General',
   'settings.tab.h5Access': 'H5 Access',
   'settings.tab.terminal': 'Terminal',
